@@ -1,0 +1,215 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Header
+  Mesh DB "." "tgemcell"
+  Check Keywords Warn
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! length in cm and electric field density in V/cm.
+$Edrift = 1000
+$Etrans = 1000
+$Einduct = 1000
+$dzP = 0.2
+$dzU = 0.2
+$dz12 = 0.2
+$dz23 = 0.2
+$dV1 = 300
+$dV2 = 300
+$dV3 = 300
+$tD = 0.0050
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+$vP = 0
+$v_lc3 = vP - Einduct*(dzP - tD/2)
+$v_uc3 = v_lc3 - dV3
+$v_lc2 = v_uc3 - Etrans*(dz23 - tD)
+$v_uc2 = v_lc2 - dV2
+$v_lc1 = v_uc2 - Etrans*(dz12 - tD)
+$v_uc1 = v_lc1 - dV1
+$vE = v_uc1 - Edrift*(dzU  - tD/2)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Simulation
+  Coordinate System = Cartesian 3D
+  Simulation Type = Steady State
+  Steady State Max Iterations = 1
+  Output File = "tgemcell.result"
+  Post File = "tgemcell.ep"
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Constants
+  Permittivity Of Vacuum = 8.8542e-12
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Solver 1
+  Equation = Stat Elec Solver
+  Variable = Potential
+  Variable DOFs = 1
+  Procedure = "StatElecSolve" "StatElecSolver"
+  Calculate Electric Field = True
+  Calculate Electric Flux = False
+  Linear System Solver = Iterative
+  Linear System Iterative Method = BiCGStab
+  Linear System Max Iterations = 1000
+  Linear System Abort Not Converged = True
+  Linear System Convergence Tolerance = 1.0e-10
+  Linear System Preconditioning = ILU1
+  Steady State Convergence Tolerance = 5.0e-7
+!  Adaptive Mesh Refinement = True
+!  Adaptive Remesh = True
+!  Adaptive Save Mesh = True
+!  Adaptive Error Limit = 1.0e-12
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Material 1
+  Name = "gas"
+  Relative Permittivity = 1
+  Density = 1
+End
+
+Material 2
+  Name = "polyimide"
+  Relative Permittivity = 3.5
+  Density = 2
+End
+
+Material 3
+  Name = "copper"
+  Relative Permittivity = 1.0e10
+  Density = 3
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Equation 1
+  Active Solvers(1) = 1
+  Calculate Electric Energy = True
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Body 1
+  Name = "gas"
+  Equation = 1
+  Material = 1
+End
+
+Body 2
+  Name = "GEM1 upper copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 3
+  Name = "GEM1 lower copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 4
+  Name = "GEM1 dielectric layer"
+  Equation = 1
+  Material = 2
+End
+
+Body 5
+  Name = "GEM2 upper copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 6
+  Name = "GEM2 lower copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 7
+  Name = "GEM2 dielectric layer"
+  Equation = 1
+  Material = 2
+End
+
+Body 8
+  Name = "GEM3 upper copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 9
+  Name = "GEM3 lower copper"
+  Equation = 1
+  Material = 3
+End
+
+Body 10
+  Name = "GEM3 dielectric layer"
+  Equation = 1
+  Material = 2
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Boundary Condition 1
+  Name = "electrode boundary"
+  Target Boundaries = 1
+  Potential = $vE
+End
+
+Boundary Condition 2
+  Name = "GEM1 upper copper boundary"
+  Target Boundaries = 2
+  Potential = $v_uc1
+End
+
+Boundary Condition 3
+  Name = "GEM1 lower copper boundary"
+  Target Boundaries = 3
+  Potential = $v_lc1
+End
+
+Boundary Condition 4
+  Name = "GEM2 upper copper boundary"
+  Target Boundaries = 4
+  Potential = $v_uc2
+End
+
+Boundary Condition 5
+  Name = "GEM2 lower copper boundary"
+  Target Boundaries = 5
+  Potential = $v_lc2
+End
+
+Boundary Condition 6
+  Name = "GEM3 upper copper boundary"
+  Target Boundaries = 6
+  Potential = $v_uc3
+End
+
+Boundary Condition 7
+  Name = "GEM3 lower copper boundary"
+  Target Boundaries = 7
+  Potential = $v_lc3
+End
+
+Boundary Condition 8
+  Name = "Pad plane"
+  Target Boundaries = 8
+  Potential = $vP
+End
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Pair of periodic boundary condition for x direction.
+Boundary Condition 9
+  Name = "x-min periodic boundary"
+  Target Boundaries = 9
+End
+Boundary Condition 10
+  Name = "x-max periodic boundary"
+  Target Boundaries = 10
+  Periodic BC = 9
+  Periodic BC Potential = Logical True
+END
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Pair of periodic boundary condition for y direction.
+Boundary Condition 11
+  Name = "y-min periodic boundary"
+  Target Boundaries = 11
+End
+Boundary Condition 12
+  Name = "y-max periodic boundary"
+  Target Boundaries = 12
+  Periodic BC = 11
+  Periodic BC Potential = Logical True
+END
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
